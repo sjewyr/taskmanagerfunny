@@ -88,7 +88,7 @@ pub fn run(conf: Config) -> Result<(), Box<dyn Error>> {
     }
 }
 pub struct Config {
-    pub filename: String,
+    filename: String,
 }
 impl Config {
     pub fn build(args: &mut env::Args) -> Result<Config, &'static str> {
@@ -106,4 +106,34 @@ enum Message {
     Del(String),
     List,
     Exit,
+}
+#[cfg(test)]
+mod tests{
+    use crate::*;
+    #[test]
+    fn test_create_and_write_one_task(){
+        fs::remove_file("test1").ok();
+        let task_name = "stupid_task";
+        let command = "New stupid_task";
+        let c = Config{filename: "test1".to_owned()};
+        process_input(command, &c).unwrap();
+        
+        let res = fs::read_to_string("test1").unwrap();
+        fs::remove_file("test1").unwrap();
+        assert_eq!(task_name, res.trim())
+
+    }
+    #[test]
+    fn test_create_and_remove(){
+        fs::remove_file("test2").ok();
+        let c = Config{filename: "test2".to_owned()};
+        let expected_result = "task1\ntask2\ntask4";
+        let commands = vec!["new task1", "new task2", "new task3", "new task4", "del task3"];
+
+        commands.into_iter().for_each(|command| {process_input(command, &c).unwrap();});
+
+        let res = fs::read_to_string("test2").unwrap();
+        fs::remove_file("test2").unwrap();
+        assert_eq!(expected_result, res.trim())
+    }
 }
