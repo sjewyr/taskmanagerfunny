@@ -3,10 +3,12 @@ use rusttasksmanager::{Config, run};
 
 fn main() {
     let conf = Config::build(&mut env::args()).inspect_err(|err| {
-        println!("Problem parsing arguments: {err}");
+        eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
     }).unwrap();
-    run(conf);
+    if let Err(val) = run(conf) {
+        eprintln!("Failed to proccess input: {val}")
+    };
 
 
     
