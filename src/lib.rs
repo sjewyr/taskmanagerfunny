@@ -45,20 +45,22 @@ fn process_input(input: &str, f: &Config) -> Result<(), Box<dyn Error>> {
                 .open(&f.filename)?,
         )?,
         Message::Exit => process::exit(0),
-        Message::List => list(&mut fs::File::options().read(true).open(&f.filename)?)?, 
+        Message::List => list(&mut fs::File::options().read(true).open(&f.filename)?)?,
     }
     Ok(())
 }
 
-fn list(f: &mut File) -> Result<(), Box<dyn Error>>{
+fn list(f: &mut File) -> Result<(), Box<dyn Error>> {
     let mut s = String::new();
     f.read_to_string(&mut s)?;
-    s.lines().map(|line| line.trim()).for_each(|line| println!("{line}"));
+    s.lines()
+        .map(|line| line.trim())
+        .for_each(|line| println!("{line}"));
     Ok(())
 }
 
 fn add_to_file(input: &str, f: &mut File) -> Result<(), Box<dyn Error>> {
-    f.write((input.to_owned()+"\n").as_bytes())?;
+    f.write((input.to_owned() + "\n").as_bytes())?;
     Ok(())
 }
 
@@ -67,12 +69,12 @@ fn delete_from_file(input: &str, f: &mut File) -> Result<(), Box<dyn Error>> {
     f.read_to_string(&mut s)?;
     f.seek(io::SeekFrom::Start(0))?;
     f.set_len(0)?;
-    s.lines()
-        .filter(|line| !line.eq(&input))
-        .try_for_each(|line: &str| -> std::io::Result<()> {
-            f.write_all((line.to_owned()+"\n").as_bytes())?;
+    s.lines().filter(|line| !line.eq(&input)).try_for_each(
+        |line: &str| -> std::io::Result<()> {
+            f.write_all((line.to_owned() + "\n").as_bytes())?;
             Ok(())
-        })?;
+        },
+    )?;
     Ok(())
 }
 
@@ -108,29 +110,40 @@ enum Message {
     Exit,
 }
 #[cfg(test)]
-mod tests{
+mod tests {
     use crate::*;
     #[test]
-    fn test_create_and_write_one_task(){
+    fn test_create_and_write_one_task() {
         fs::remove_file("test1").ok();
         let task_name = "stupid_task";
         let command = "New stupid_task";
-        let c = Config{filename: "test1".to_owned()};
+        let c = Config {
+            filename: "test1".to_owned(),
+        };
         process_input(command, &c).unwrap();
-        
+
         let res = fs::read_to_string("test1").unwrap();
         fs::remove_file("test1").unwrap();
         assert_eq!(task_name, res.trim())
-
     }
     #[test]
-    fn test_create_and_remove(){
+    fn test_create_and_remove() {
         fs::remove_file("test2").ok();
-        let c = Config{filename: "test2".to_owned()};
+        let c = Config {
+            filename: "test2".to_owned(),
+        };
         let expected_result = "task1\ntask2\ntask4";
-        let commands = vec!["new task1", "new task2", "new task3", "new task4", "del task3"];
+        let commands = vec![
+            "new task1",
+            "new task2",
+            "new task3",
+            "new task4",
+            "del task3",
+        ];
 
-        commands.into_iter().for_each(|command| {process_input(command, &c).unwrap();});
+        commands.into_iter().for_each(|command| {
+            process_input(command, &c).unwrap();
+        });
 
         let res = fs::read_to_string("test2").unwrap();
         fs::remove_file("test2").unwrap();
